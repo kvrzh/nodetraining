@@ -1,0 +1,10 @@
+nav.navbar .navbar-right{
+	margin-right: 0;
+}
+form div.form-group label{
+	text-align: center !important;
+}
+div#room ul{
+	list-style: none;
+    padding-left: 5px;
+}
