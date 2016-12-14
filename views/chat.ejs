@@ -1,0 +1,60 @@
+<% layout('layouts/page') -%>
+<% block('title', "Чат") -%>
+
+<script src="/socket.io/socket.io.js"></script>
+<input type="hidden" id="login" value="<%=user.get('username')%>"/>
+<div id="room">
+  <ul></ul>
+  <form>
+    <input class="form-control" autocomplete="off" autofocus placeholder="Сообщение...">
+  </form>
+</div>
+
+<script>
+
+  var input = $('#room input');
+  var ul = $('#room ul');
+  var form = $('#room form');
+  var login = $('#login').val();
+  var socket = io.connect('', {
+    reconnect: false
+  });
+  window.onload = function(){
+    socket.emit('hello',{name:login});
+  }
+  socket
+      .on('message', function(message) {
+        printMessage(message);
+      })
+      .on('connect', function() {
+        printStatus("соединение установлено, здарова "+login);
+        form.on('submit', sendMessage);
+        input.prop('disabled', false);
+      })
+      .on('disconnect', function() {
+        printStatus("соединение потеряно");
+        form.off('submit', sendMessage);
+        input.prop('disabled', true);
+        setTimeout(reconnect, 500);
+      });
+  function sendMessage() {
+    var text = input.val();
+    socket.emit('message', {text:text, name:login}, function() {
+      printMessage(login+': '+text);
+    });
+    input.val('');
+    return false;
+  }
+  function reconnect() {
+    socket.once('error', function() {
+      setTimeout(reconnect, 500);
+    });
+    socket.socket.connect();
+  }
+  function printStatus(status) {
+    $('<li>').append($('<i>').text('Системное сообщение: '+status)).appendTo(ul);
+  }
+  function printMessage(text) {
+    $('<li>').text(text).appendTo(ul);
+  }
+</script>
